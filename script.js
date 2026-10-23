@@ -51,6 +51,8 @@ form.addEventListener("submit", async (event) => {
   const controller = new AbortController();
   activeRequest = controller;
   resultsGrid.replaceChildren();
+  
+  // 1. Loading State
   setStatus("Searching...");
   searchButton.disabled = true;
 
@@ -72,6 +74,8 @@ form.addEventListener("submit", async (event) => {
       `https://commons.wikimedia.org/w/api.php?${params}`,
       { signal: controller.signal },
     );
+    
+    // 3. Error State (API response check)
     if (!response.ok) {
       throw new Error(`Wikimedia API request failed with status ${response.status}`);
     }
@@ -80,6 +84,7 @@ form.addEventListener("submit", async (event) => {
     const items = Object.values(data.query?.pages ?? {});
     const count = render(items);
 
+    // 2. Empty State
     if (count === 0) {
       setStatus("No images found. Try another search.");
     } else {
@@ -89,7 +94,8 @@ form.addEventListener("submit", async (event) => {
     if (error instanceof Error && error.name === "AbortError") return;
 
     console.error("Error fetching images:", error);
-    setStatus("Unable to load images. Please try again.");
+    // 3. Error State (Catch block message)
+    setStatus("Something went wrong. Please try again.");
   } finally {
     if (activeRequest === controller) {
       activeRequest = undefined;
